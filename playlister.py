@@ -6,8 +6,11 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
 
-def load_present_tracks(playlist):
-    items = playlist['tracks']['items']
+def load_present_tracks(track_list):
+    """Extracts the ID's from the playlist object it is passed.
+        Also returns a dictionary of ID's and song titles."""
+
+    items = track_list['tracks']['items']
     present_track_id = set()
     lookup_id = {}
     for i in items:
@@ -17,7 +20,9 @@ def load_present_tracks(playlist):
 
 
 def get_track_ids(six_music):
-
+    """ Takes a dict of track names and song titles, queries the Spotify ID's.
+        Returns a set of track ID's.
+    """
     track_id = set()
     for i in six_music:
         string = i + ' ' + six_music[i]
@@ -32,6 +37,7 @@ def get_track_ids(six_music):
 
 
 def filter_list(paragraphs):
+    """Takes a list of paragraphs from the scraped page - returns them as track:artist dict."""
     paragraphs.pop(0)
     paragraphs.pop(0)
     current_playing = {}
@@ -42,11 +48,11 @@ def filter_list(paragraphs):
         if len(split) > 1:
             if split[0] == 'Hear' and split[1] == 'tracks':
                 break
-            i=0
+            x = 0
             for word in split:
                 if word == '–':
-                    split[i] = '-'
-                i += 1
+                    split[x] = '-'
+                x += 1
             split = ' '.join(split)
             song = split.split('-')
             print('song= {}'.format(song))
@@ -54,9 +60,11 @@ def filter_list(paragraphs):
     return current_playing
 
 
-def fetch_playlist():
+def fetch_playlist(url):
+    """Scrapes all of the paragraphs from the webpage. This works for 6 Music quite well due to their page format."""
+
     # html=download('https://www.bbc.co.uk/programmes/articles/5JDPyPdDGs3yCLdtPhGgWM7/bbc-radio-6-music-playlist')
-    html = urllib. request.urlopen('https://www.bbc.co.uk/programmes/articles/5JDPyPdDGs3yCLdtPhGgWM7/bbc-radio-6-music-playlist')
+    html = urllib. request.urlopen(url)
     print('{} seconds fetch.'.format(time.time()-start))
     content = html.read()
     soup = BeautifulSoup(content,'html.parser')
@@ -65,18 +73,20 @@ def fetch_playlist():
 
 
 def add_to_playlist(id_list):
+    """Adds a list or ser of tracks to the playlist."""
     confirm = input('Add to playlist, are you sure??? (y) ')
     if confirm == 'y':
-        spot.playlist_add_items(playlistID, id_list)
+        spot.playlist_add_items(PLAYLIST_ID, id_list)
         return True
-    else:
-        return False
+
+    return False
 
 
-def remove_old_entries(days, playlist):
-    playlist = playlist['tracks']['items']
+def remove_old_entries(days, track_list):
+    """Finds tracks in the playlist object that are older than the specified days, removes them."""
+    track_list = track_list['tracks']['items']
     id_list = []
-    for item in playlist:
+    for item in track_list:
         date = item['added_at'][:10] # trim only the date from something like this: 2020-11-30T10:22:00Z
         date = datetime.datetime(int(date[0:4]), int(date[5:7]), int(date[8:10]))
         age = datetime.datetime.now() - date
@@ -87,13 +97,14 @@ def remove_old_entries(days, playlist):
 
     confirm = input('Are you sure you want to remove {} tracks?? (y) '.format(len(id_list)))
     if confirm == 'y':
-        spot.playlist_remove_all_occurrences_of_items(playlistID, id_list, snapshot_id=None)
+        spot.playlist_remove_all_occurrences_of_items(PLAYLIST_ID, id_list, snapshot_id=None)
         print('removed')
     else:
         return False
 
 
-def find_duplicate_names(id_list, playlist_id):
+def find_duplicate_names(id_list):
+    """Finds any tracks that have the same title and artist."""
     seen_track_names = set()
     duplicate_ids = set()
 
@@ -106,8 +117,11 @@ def find_duplicate_names(id_list, playlist_id):
     return duplicate_ids
 
 
+WEBSITE = 'https://www.bbc.co.uk/programmes/articles/5JDPyPdDGs3yCLdtPhGgWM7/bbc-radio-6-music-playlist'
+PLAYLIST_ID = '7wYrBV5GqvjLYjfR2tz0YQ'
+
 start = time.time()
-allP = fetch_playlist()
+allP = fetch_playlist(WEBSITE)
 try:
     playlist = filter_list(allP)
 except IndexError as e:
@@ -122,8 +136,7 @@ except IndexError as e:
 
 scope = 'user-library-read playlist-modify-public'
 spot = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
-playlistID = '7wYrBV5GqvjLYjfR2tz0YQ'  # Replace with your own playlist ID - You have to own it with the set credentials
-results = spot.playlist(playlistID)  # the playlist item from spotify api
+results = spot.playlist(PLAYLIST_ID)  # the playlist item from spotify api
 
 presentIDs, lookupID = load_present_tracks(results)
 websiteIDs = get_track_ids(playlist)
@@ -144,9 +157,9 @@ print('scanning for old entries over 180 days')
 remove_old_entries(180, results)
 
 
-dupes = find_duplicate_names(presentIDs, playlistID)
+dupes = find_duplicate_names(presentIDs, PLAYLIST_ID)
 print("{} duplicate items found...".format(len(dupes)))
-for i in dupes:
-    print(lookupID[i])
+for d in dupes:
+    print(lookupID[d])
 if input("Wanna Remove them? (y)") =="y":
-    spot.playlist_remove_all_occurrences_of_items(playlistID, dupes)
+    spot.playlist_remove_all_occurrences_of_items(PLAYLIST_ID, dupes)
