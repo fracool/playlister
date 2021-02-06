@@ -7,8 +7,7 @@ from spotipy.oauth2 import SpotifyOAuth
 
 
 def load_present_tracks(track_list):
-    """Extracts the ID's from the playlist object it is passed.
-        Also returns a dictionary of ID's and song titles."""
+    """Extract the ID's from the playlist object it is passed. Also returns a dictionary of ID's and song titles."""
 
     present_track_id = set()
     lookup_id = {}
@@ -19,9 +18,7 @@ def load_present_tracks(track_list):
 
 
 def get_track_ids(six_music):
-    """ Takes a dict of track names and song titles, queries the Spotify ID's.
-        Returns a set of track ID's.
-    """
+    """ Take a dict of track names and song titles, queries the Spotify ID's. Returns a set of track ID's."""
     track_id = set()
     for i in six_music:
         string = i + ' ' + six_music[i]
@@ -37,7 +34,7 @@ def get_track_ids(six_music):
 
 
 def filter_list(paragraphs):
-    """Takes a list of paragraphs from the scraped page - returns them as track:artist dict."""
+    """Take a list of paragraphs from the scraped page - returns them as track:artist dict."""
     paragraphs.pop(0)
     paragraphs.pop(0)
     current_playing = {}
@@ -61,7 +58,7 @@ def filter_list(paragraphs):
 
 
 def fetch_playlist(url):
-    """Scrapes all of the paragraphs from the webpage. This works for 6 Music quite well due to their page format."""
+    """Scrape all of the paragraphs from the webpage. This works for 6 Music quite well due to their page format."""
 
     # html=download('https://www.bbc.co.uk/programmes/articles/5JDPyPdDGs3yCLdtPhGgWM7/bbc-radio-6-music-playlist')
     html = urllib. request.urlopen(url)
@@ -73,7 +70,7 @@ def fetch_playlist(url):
 
 
 def add_to_playlist(id_list):
-    """Adds a list or ser of tracks to the playlist."""
+    """Add a list or ser of tracks to the playlist."""
     confirm = input('Add to playlist, are you sure??? (y) ')
     if confirm == 'y':
         spot.playlist_add_items(PLAYLIST_ID, id_list)
@@ -83,7 +80,7 @@ def add_to_playlist(id_list):
 
 
 def remove_old_entries(days, track_list):
-    """Finds tracks in the playlist object that are older than the specified days, removes them."""
+    """Find tracks in the playlist object that are older than the specified days, removes them."""
 
     id_list = []
     for item in track_list:
@@ -104,7 +101,7 @@ def remove_old_entries(days, track_list):
 
 
 def find_duplicate_names(id_list):
-    """Finds any tracks that have the same title and artist."""
+    """Find any tracks that have the same title and artist."""
     seen_track_names = set()
     duplicate_ids = set()
 
