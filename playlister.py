@@ -64,7 +64,8 @@ def fetch_playlist(url):
     """Scrapes all of the paragraphs from the webpage. This works for 6 Music quite well due to their page format."""
 
     # html=download('https://www.bbc.co.uk/programmes/articles/5JDPyPdDGs3yCLdtPhGgWM7/bbc-radio-6-music-playlist')
-    html = urllib. request.urlopen(url)
+    if url.lower().startswith('http'):
+        html = urllib.request.urlopen(url)
     print('{} seconds fetch.'.format(time.time()-start))
     content = html.read()
     soup = BeautifulSoup(content,'html.parser')
