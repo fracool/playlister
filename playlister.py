@@ -66,6 +66,7 @@ def fetch_playlist(url):
         all_p = soup.find_all('p')
         print('{} seconds fetch.'.format(time.time() - start))
         return all_p
+    return False
 
 
 def add_to_playlist(id_list):
@@ -82,7 +83,7 @@ def remove_old_entries(days, track_list):
     """Find tracks in the playlist object that are older than the specified days, removes them."""
     id_list = []
     for item in track_list:
-        date = item['added_at'][:10] # trim only the date from something like this: 2020-11-30T10:22:00Z
+        date = item['added_at'][:10]  # trim only the date from something like this: 2020-11-30T10:22:00Z
         date = datetime.datetime(int(date[0:4]), int(date[5:7]), int(date[8:10]))
         age = datetime.datetime.now() - date
         # print(date.strftime("%d %m %y"),end='')
@@ -94,6 +95,7 @@ def remove_old_entries(days, track_list):
     if confirm == 'y':
         spot.playlist_remove_all_occurrences_of_items(PLAYLIST_ID, id_list, snapshot_id=None)
         print('removed')
+        return True
     else:
         return False
 
