@@ -8,7 +8,6 @@ from spotipy.oauth2 import SpotifyOAuth
 
 def load_present_tracks(track_list):
     """Extract the ID's from the playlist object it is passed. Also returns a dictionary of ID's and song titles."""
-
     present_track_id = set()
     lookup_id = {}
     for i in track_list:
@@ -18,7 +17,7 @@ def load_present_tracks(track_list):
 
 
 def get_track_ids(six_music):
-    """ Take a dict of track names and song titles, queries the Spotify ID's. Returns a set of track ID's."""
+    """Take a dict of track names and song titles, queries the Spotify ID's. Returns a set of track ID's."""
     track_id = set()
     for i in six_music:
         string = i + ' ' + six_music[i]
@@ -59,14 +58,14 @@ def filter_list(paragraphs):
 
 def fetch_playlist(url):
     """Scrape all of the paragraphs from the webpage. This works for 6 Music quite well due to their page format."""
-
     # html=download('https://www.bbc.co.uk/programmes/articles/5JDPyPdDGs3yCLdtPhGgWM7/bbc-radio-6-music-playlist')
-    html = urllib. request.urlopen(url)
-    print('{} seconds fetch.'.format(time.time()-start))
-    content = html.read()
-    soup = BeautifulSoup(content,'html.parser')
-    all_p = soup.find_all('p')
-    return all_p
+    if url.lower().startswith('http'):
+        html = urllib. request.urlopen(url)
+        content = html.read()
+        soup = BeautifulSoup(content, 'html.parser')
+        all_p = soup.find_all('p')
+        print('{} seconds fetch.'.format(time.time() - start))
+        return all_p
 
 
 def add_to_playlist(id_list):
@@ -81,7 +80,6 @@ def add_to_playlist(id_list):
 
 def remove_old_entries(days, track_list):
     """Find tracks in the playlist object that are older than the specified days, removes them."""
-
     id_list = []
     for item in track_list:
         date = item['added_at'][:10] # trim only the date from something like this: 2020-11-30T10:22:00Z
@@ -164,5 +162,5 @@ dupes = find_duplicate_names(presentIDs)
 print("{} duplicate items found...".format(len(dupes)))
 for d in dupes:
     print(lookupID[d])
-if input("Wanna Remove them? (y)") =="y":
+if input("Wanna Remove them? (y)") == "y":
     spot.playlist_remove_all_occurrences_of_items(PLAYLIST_ID, dupes)
