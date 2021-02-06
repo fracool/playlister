@@ -10,10 +10,9 @@ def load_present_tracks(track_list):
     """Extracts the ID's from the playlist object it is passed.
         Also returns a dictionary of ID's and song titles."""
 
-    items = track_list['tracks']['items']
     present_track_id = set()
     lookup_id = {}
-    for i in items:
+    for i in track_list:
         present_track_id.add(i['track']['id'])
         lookup_id[i['track']['id']] = i['track']['name']
     return present_track_id, lookup_id
@@ -27,8 +26,9 @@ def get_track_ids(six_music):
     for i in six_music:
         string = i + ' ' + six_music[i]
         try:
-            query = spot.search(string, limit=1)['tracks']['items'][0]['id']
-            track_id.add(query)
+            query = spot.search(string, limit=1)['tracks']['items'][0]
+            lookupID[query['id']] = query['name']
+            track_id.add(query['id'])
             print('Found on Spotify: {}'.format(string))
 
         except IndexError as error:
@@ -84,7 +84,7 @@ def add_to_playlist(id_list):
 
 def remove_old_entries(days, track_list):
     """Finds tracks in the playlist object that are older than the specified days, removes them."""
-    track_list = track_list['tracks']['items']
+
     id_list = []
     for item in track_list:
         date = item['added_at'][:10] # trim only the date from something like this: 2020-11-30T10:22:00Z
@@ -131,12 +131,18 @@ except IndexError as e:
         try_num += 1
         print("Trying again in 5... try {}".format(try_num))
         time.sleep(5)
-        allP = fetch_playlist()
+        allP = fetch_playlist(WEBSITE)
     playlist = filter_list(allP)
 
 scope = 'user-library-read playlist-modify-public'
 spot = spotipy.Spotify(client_credentials_manager=SpotifyOAuth(scope=scope))
-results = spot.playlist(PLAYLIST_ID)  # the playlist item from spotify api
+res = spot.playlist(PLAYLIST_ID)  # the playlist item from spotify api
+res = res['tracks']
+results = res['items']
+while res['next']:
+    res = spot.next(res)
+    results.extend(res['items'])
+
 
 presentIDs, lookupID = load_present_tracks(results)
 websiteIDs = get_track_ids(playlist)
@@ -157,7 +163,7 @@ print('scanning for old entries over 180 days')
 remove_old_entries(180, results)
 
 
-dupes = find_duplicate_names(presentIDs, PLAYLIST_ID)
+dupes = find_duplicate_names(presentIDs)
 print("{} duplicate items found...".format(len(dupes)))
 for d in dupes:
     print(lookupID[d])
