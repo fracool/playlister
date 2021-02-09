@@ -28,7 +28,7 @@ def get_track_ids(six_music):
             print('Found on Spotify: {}'.format(string))
 
         except IndexError as error:
-            print("""FUUUUUCK,{}, couldn't find this one: {}""".format(error, string))
+            print("""Oops, {}, couldn't find this one: {}""".format(error, string))
     return track_id
 
 
